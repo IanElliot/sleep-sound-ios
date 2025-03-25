@@ -1,82 +1,16 @@
 import { StyleSheet, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useAudioPlayer } from "expo-audio";
 
-const audioSource = require("./assets/Hello.mp3");
-
-// Custom hook for audio handling
-function useAudio(audioSource: number) {
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  useEffect(() => {
-    async function setupAudio() {
-      try {
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          staysActiveInBackground: true,
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: false,
-        });
-
-        const { sound } = await Audio.Sound.createAsync(audioSource, {
-          isLooping: true,
-          shouldPlay: false,
-        });
-
-        setSound(sound);
-      } catch (error) {
-        console.error("Error loading audio:", error);
-      }
-    }
-
-    setupAudio();
-
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [audioSource]);
-
-  const playSound = async () => {
-    if (!sound) return;
-    try {
-      await sound.playAsync();
-      setIsPlaying(true);
-    } catch (error) {
-      console.error("Error playing sound:", error);
-    }
-  };
-
-  const pauseSound = async () => {
-    if (!sound) return;
-    try {
-      await sound.pauseAsync();
-      setIsPlaying(false);
-    } catch (error) {
-      console.error("Error pausing sound:", error);
-    }
-  };
-
-  const toggleSound = async () => {
-    if (isPlaying) {
-      await pauseSound();
-    } else {
-      await playSound();
-    }
-  };
-
-  return { isPlaying, toggleSound };
-}
+const audioSource = require("../../assets/audio/risk.mp3");
 
 export default function HomeScreen() {
-  const audioSource = require("../../assets/sounds/white-noise.mp3");
-  const { isPlaying, toggleSound } = useAudio(audioSource);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const player = useAudioPlayer(audioSource);
 
   return (
     <ThemedView style={styles.container}>
@@ -85,7 +19,7 @@ export default function HomeScreen() {
           White Noise
         </ThemedText>
 
-        <Pressable style={styles.playButton} onPress={toggleSound}>
+        <Pressable style={styles.playButton} onPress={() => player.play()}>
           <Ionicons
             name={isPlaying ? "pause-circle" : "play-circle"}
             size={80}
